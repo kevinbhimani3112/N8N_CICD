@@ -2,8 +2,8 @@ name: Publish n8n node to npm
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - release
 
 jobs:
   publish:
