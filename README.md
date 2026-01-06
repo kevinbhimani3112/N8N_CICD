@@ -1,4 +1,4 @@
-# n8n-nodes-name-concat
+# n8n-nodes-test-publish
 
 This is an n8n community node. It lets you concatenate a first name and a last name into a full name in your n8n workflows.
 

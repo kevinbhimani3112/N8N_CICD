@@ -1,6 +1,6 @@
 {
-	"name": "n8n-nodes-name-concat",
-	"version": "0.1.9",
+	"name": "n8n-nodes-test-publish",
+	"version": "0.1.0",
 	"description": "An n8n node to concatenate first and last names.",
 	"license": "MIT",
 	"homepage": "",
@@ -14,7 +14,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/kevinbhimani3112/N8N.git"
+		"url": "https://github.com/kevinbhimani3112/N8N_CICD.git"
 	},
 	"scripts": {
 		"build": "n8n-node build",
