@@ -1,7 +1,7 @@
 name: Publish n8n node to npm
 
 permissions:
-  contents: write   # 🔥 REQUIRED for pushing tags
+  contents: write   # required for pushing git tags
 
 on:
   push:
@@ -33,34 +33,46 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Read package version
+      # 🔹 Read name & version from package.json
+      - name: Read package details
         id: pkg
         run: |
-          VERSION=$(node -p "require('./package.json').version")
           NAME=$(node -p "require('./package.json').name")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=$(node -p "require('./package.json').version")
           echo "name=$NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Package: $NAME"
+          echo "🔢 Version: $VERSION"
 
+      # 🔹 Check npm registry for existing version
       - name: Check if version already published
         id: check
         run: |
-          if npm view ${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }} version >/dev/null 2>&1; then
+          if npm view "${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }}" version >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Skip publish if version exists
+      # ❌ Stop with clear UI error
+      - name: Stop publish if version already exists
         if: steps.check.outputs.exists == 'true'
         run: |
-          echo "Version already published. Skipping."
-          exit 0
+          echo "::error::❌ Publish blocked!"
+          echo "::error::📦 Package '${{ steps.pkg.outputs.name }}'"
+          echo "::error::🔢 Version '${{ steps.pkg.outputs.version }}' is already published on npm."
+          echo "::error::👉 Please bump the version in package.json (patch/minor/major) and retry."
+          exit 1
 
+      # 🚀 Publish to npm
       - name: Publish to npm
-        run: npm publish --access public
+        run: |
+          echo "🚀 Publishing to npm..."
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.N8N_NAMECONCAT_02 }}
 
+      # 🏷️ Create & push git tag
       - name: Create and push git tag
         run: |
           git config user.name "github-actions"
