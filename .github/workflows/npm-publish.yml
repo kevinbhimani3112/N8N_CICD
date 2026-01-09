@@ -1,5 +1,8 @@
 name: Publish n8n node to npm
 
+permissions:
+  contents: write   # 🔥 REQUIRED for pushing tags
+
 on:
   push:
     branches:
@@ -13,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # required for pushing tags
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,7 +33,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      # 🔹 Get version from package.json
       - name: Read package version
         id: pkg
         run: |
@@ -39,7 +41,6 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
 
-      # 🔹 Check if version already exists on npm
       - name: Check if version already published
         id: check
         run: |
@@ -49,20 +50,17 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      # 🔹 Stop workflow if version already exists
-      - name: Skip publish (version already exists)
+      - name: Skip publish if version exists
         if: steps.check.outputs.exists == 'true'
         run: |
-          echo "❌ Version ${{ steps.pkg.outputs.version }} already published. Skipping npm publish."
+          echo "Version already published. Skipping."
           exit 0
 
-      # 🔹 Publish to npm
       - name: Publish to npm
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.N8N_NAMECONCAT_02 }}
 
-      # 🔹 Create and push git tag (vX.Y.Z)
       - name: Create and push git tag
         run: |
           git config user.name "github-actions"
