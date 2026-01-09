@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # required for pushing tags
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -20,7 +22,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: npm i
+        run: npm install
 
       - name: Lint
         run: npm run lint
@@ -28,7 +30,44 @@ jobs:
       - name: Build
         run: npm run build
 
+      # 🔹 Get version from package.json
+      - name: Read package version
+        id: pkg
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+
+      # 🔹 Check if version already exists on npm
+      - name: Check if version already published
+        id: check
+        run: |
+          if npm view ${{ steps.pkg.outputs.name }}@${{ steps.pkg.outputs.version }} version >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 🔹 Stop workflow if version already exists
+      - name: Skip publish (version already exists)
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          echo "❌ Version ${{ steps.pkg.outputs.version }} already published. Skipping npm publish."
+          exit 0
+
+      # 🔹 Publish to npm
       - name: Publish to npm
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.N8N_NAMECONCAT_02 }}
+
+      # 🔹 Create and push git tag (vX.Y.Z)
+      - name: Create and push git tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          TAG="v${{ steps.pkg.outputs.version }}"
+          git tag $TAG
+          git push origin $TAG
