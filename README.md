@@ -1,5 +1,5 @@
 # n8n-nodes-test-publish
-Test
+Test 1
 Test :- This is an n8n community node. It lets you concatenate a first name and a last name into a full name in your n8n workflows.
 
 [n8n](https://n8n.io/) is a fair-code licensed workflow automation platform.
